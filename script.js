@@ -52,25 +52,34 @@ function handleFile(e) {
 }
 
 convertBtn.addEventListener('click', () => {
-    if (!currentImageData) return;
+    if (!currentImageData || typeof ImageTracer === 'undefined') {
+        alert('ImageTracer not loaded or no image. Check console.');
+        return;
+    }
     const options = {
         colorsampling: 1,
-        numberofcolors: +document.getElementById('colors').value,
-        blurradius: +document.getElementById('blur').value,
-        ltres: 0.5, qtres: 0.5,
-        pathomit: 8, layerdifference: 16
+        numberofcolors: parseInt(document.getElementById('colors').value),
+        blurradius: parseFloat(document.getElementById('blur').value),
+        ltres: 1, qtres: 1,
+        pathomit: 8, blurradius: 0,
+        strokewidth: 1, scale: 1,
+        roundcoords: 1, lcpr: 0,
+        qcpr: 0, desc: 0
     };
-    ImageTracer.imageToSVG(currentImageData, options, svgData => {
+    try {
+        const svgData = ImageTracer.imagedataToSVG(currentImageData, options);  // Fixed: Synchronous API [page:1]
         svgPreview.innerHTML = svgData;
-        svgLink.href = 'data:image/svg+xml;base64,' + btoa(svgData);
+        svgLink.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);  // Fixed: Proper data URL
+        svgLink.download = 'converted.svg';
         svgLink.style.display = 'inline-block';
         actions.style.display = 'block';
-    });
+    } catch (err) {
+        console.error('Tracing error:', err);
+        alert('Conversion failed: ' + err.message);
+    }
 });
 
-downloadBtn.addEventListener('click', () => {
-    svgLink.click();
-});
+downloadBtn.addEventListener('click', () => svgLink.click());
 
 ['colors', 'blur'].forEach(id => {
     document.getElementById(id).addEventListener('input', e => {
