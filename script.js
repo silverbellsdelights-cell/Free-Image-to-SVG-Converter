@@ -1,234 +1,195 @@
-// =====================================================
-// FIXED Image to SVG Converter - WORKING VERSION
-// GitHub Pages Ready - No Dependencies
-// =====================================================
+// Image to SVG Converter - Complete Working Script
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Elements
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const browseBtn = document.getElementById('browseBtn');
+    const previewArea = document.getElementById('previewArea');
+    const downloadArea = document.getElementById('downloadArea');
+    const originalImg = document.getElementById('originalImg');
+    const svgPreview = document.getElementById('svgPreview');
+    const finalSvg = document.getElementById('finalSvg');
+    const detailSlider = document.getElementById('detailSlider');
+    const detailValue = document.getElementById('detailValue');
+    const convertBtn = document.getElementById('convertBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const copyBtn = document.getElementById('copyBtn');
 
-class ImageToSVGConverter {
-    constructor() {
-        this.currentImage = null;
-        this.svgOutput = null;
-        this.isProcessing = false;
-        this.init();
+    let originalImageData = null;
+    let currentSvg = null;
+    let detailLevel = 5;
+
+    // Update detail value display
+    detailSlider.addEventListener('input', function() {
+        detailValue.textContent = this.value;
+        detailLevel = parseInt(this.value);
+        if (originalImageData) {
+            convertImage();
+        }
+    });
+
+    // Browse button
+    browseBtn.addEventListener('click', () => fileInput.click());
+
+    // File input change
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Drag and drop
+    uploadZone.addEventListener('dragover', handleDragOver);
+    uploadZone.addEventListener('dragleave', handleDragLeave);
+    uploadZone.addEventListener('drop', handleDrop);
+
+    // Convert button
+    convertBtn.addEventListener('click', convertImage);
+
+    // Download button
+    downloadBtn.addEventListener('click', downloadSvg);
+
+    // Copy button
+    copyBtn.addEventListener('click', copySvgCode);
+
+    function handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (file && isValidImage(file)) {
+            loadImage(file);
+        }
     }
 
-    init() {
-        this.attachEvents();
-        this.updateUI();
+    function handleDragOver(e) {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
     }
 
-    attachEvents() {
-        // File input
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput) {
-            fileInput.addEventListener('change', (e) => this.loadImage(e));
-        }
+    function handleDragLeave(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+    }
 
-        // Convert button
-        const convertBtn = document.getElementById('convertBtn');
-        if (convertBtn) {
-            convertBtn.addEventListener('click', () => this.convertToSVG());
-        }
-
-        // Download button
-        const downloadBtn = document.getElementById('downloadBtn');
-        if (downloadBtn) {
-            downloadBtn.addEventListener('click', () => this.downloadSVG());
-        }
-
-        // Copy button
-        const copyBtn = document.getElementById('copyBtn');
-        if (copyBtn) {
-            copyBtn.addEventListener('click', () => this.copySVG());
+    function handleDrop(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && isValidImage(file)) {
+            loadImage(file);
         }
     }
 
-    loadImage(event) {
-        const file = event.target.files[0];
-        if (!file || !file.type.startsWith('image/')) {
-            alert('Please select a valid image file');
-            return;
-        }
+    function isValidImage(file) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        return validTypes.includes(file.type) && file.size < 10 * 1024 * 1024;
+    }
 
+    function loadImage(file) {
         const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                this.currentImage = img;
-                const preview = document.getElementById('imagePreview');
-                if (preview) {
-                    preview.src = img.src;
-                    preview.style.display = 'block';
-                }
-                this.updateUI();
-            };
-            img.src = e.target.result;
+        reader.onload = function(e) {
+            originalImg.src = e.target.result;
+            uploadZone.style.display = 'none';
+            previewArea.classList.remove('hidden');
         };
         reader.readAsDataURL(file);
     }
 
-    async convertToSVG() {
-        if (!this.currentImage || this.isProcessing) return;
-
-        this.isProcessing = true;
-        const convertBtn = document.getElementById('convertBtn');
-        const status = document.getElementById('status');
-        
-        if (convertBtn) convertBtn.disabled = true;
-        if (status) status.textContent = 'Converting...';
-
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Set canvas size (max 400px for performance)
-            const maxSize = 400;
-            let { width, height } = this.currentImage;
-            
-            if (width > height) {
-                if (width > maxSize) height *= maxSize / width;
-                width = maxSize;
-            } else {
-                if (height > maxSize) width *= maxSize / height;
-                height = maxSize;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(this.currentImage, 0, 0, width, height);
-
-            // Get image data and convert to SVG
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const svg = this.imageDataToSVG(imageData, width, height);
-
-            // Display results
-            const svgOutput = document.getElementById('svgOutput');
-            const svgPreview = document.getElementById('svgPreview');
-            
-            if (svgOutput) svgOutput.value = svg;
-            if (svgPreview) {
-                svgPreview.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
-                svgPreview.style.display = 'block';
-            }
-
-            this.svgOutput = svg;
-            this.updateUI();
-
-        } catch (error) {
-            console.error('Conversion failed:', error);
-            alert('Conversion failed. Please try a smaller image.');
-        } finally {
-            this.isProcessing = false;
-            if (convertBtn) convertBtn.disabled = false;
-            if (status) status.textContent = 'Ready';
-        }
-    }
-
-    imageDataToSVG(imageData, width, height) {
-        const data = imageData.data;
-        const svg = [];
-
-        // Simple posterization - group similar colors
-        const paths = this.posterizeImage(data, width, height);
-
-        svg.push(`<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`);
-        
-        // Add paths to SVG
-        paths.forEach(path => {
-            const color = `rgb(${path.color.r},${path.color.g},${path.color.b})`;
-            svg.push(`<path d="${path.d}" fill="${color}" stroke="none"/>`);
-        });
-
-        // Add simple scanlines for better effect
-        for (let y = 0; y < height; y += 20) {
-            const alpha = 0.05;
-            svg.push(`<rect y="${y}" width="${width}" height="1" fill="black" opacity="${alpha}"/>`);
+    function convertImage() {
+        if (!originalImageData) {
+            loadOriginalImageData();
+            return;
         }
 
-        svg.push('</svg>');
-        return svg.join('');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = originalImg.naturalWidth;
+        canvas.height = originalImg.naturalHeight;
+        ctx.drawImage(originalImg, 0, 0);
+        
+        // Simple tracing algorithm
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const svgPaths = traceImage(imageData, detailLevel);
+        currentSvg = createSvg(svgPaths, canvas.width, canvas.height);
+        
+        svgPreview.innerHTML = currentSvg;
+        convertBtn.textContent = '✅ Converted!';
+        convertBtn.disabled = true;
     }
 
-    posterizeImage(data, width, height) {
+    function loadOriginalImageData() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = originalImg.naturalWidth;
+        canvas.height = originalImg.naturalHeight;
+        ctx.drawImage(originalImg, 0, 0);
+        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        convertImage();
+    }
+
+    function traceImage(imageData, detail) {
         const paths = [];
-        const visited = new Set();
+        const { data, width, height } = imageData;
+        const step = Math.max(1, 10 - detail);
         
-        // Sample every 8th pixel for performance
-        for (let y = 0; y < height; y += 8) {
-            for (let x = 0; x < width; x += 8) {
-                const i = (Math.floor(y) * width + Math.floor(x)) * 4;
-                if (i >= data.length) continue;
-
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
+        for (let y = 0; y < height; y += step) {
+            for (let x = 0; x < width; x += step) {
+                const i = (y * width + x) * 4;
+                const r = data[i], g = data[i+1], b = data[i+2];
+                const brightness = (r * 299 + g * 587 + b * 114) / 1000;
                 
-                // Posterize colors (reduce to 8 levels per channel)
-                const posterR = Math.floor(r / 32) * 32;
-                const posterG = Math.floor(g / 32) * 32;
-                const posterB = Math.floor(b / 32) * 32;
-
-                const pathId = `${posterR}-${posterG}-${posterB}-${Math.floor(x/8)}-${Math.floor(y/8)}`;
-                if (visited.has(pathId)) continue;
-                visited.add(pathId);
-
-                // Create simple rectangular path
-                paths.push({
-                    d: `M${x} ${y} h8 v8 h-8 Z`,
-                    color: { r: posterR, g: posterG, b: posterB }
-                });
+                if (brightness < 128) {
+                    paths.push({
+                        x: x / width,
+                        y: y / height,
+                        color: `rgb(${r},${g},${b})`
+                    });
+                }
             }
         }
-
         return paths;
     }
 
-    downloadSVG() {
-        if (!this.svgOutput) return;
+    function createSvg(paths, width, height) {
+        const colors = {};
+        paths.forEach(p => {
+            const colorKey = p.color;
+            if (!colors[colorKey]) colors[colorKey] = [];
+            colors[colorKey].push(p);
+        });
 
-        const blob = new Blob([this.svgOutput], { type: 'image/svg+xml' });
+        let svg = `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+`;
+        
+        Object.entries(colors).forEach(([color, points]) => {
+            if (points.length > 10) {
+                svg += `  <path fill="${color}" opacity="0.8" d="`;
+                points.forEach((p, i) => {
+                    const x = p.x * width;
+                    const y = p.y * height;
+                    if (i === 0) svg += `M ${x} ${y} `;
+                    else svg += `L ${x} ${y} `;
+                });
+                svg += `Z" />
+`;
+            }
+        });
+        
+        svg += `</svg>`;
+        return svg;
+    }
+
+    function downloadSvg() {
+        const blob = new Blob([currentSvg], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `image-${Date.now()}.svg`;
+        a.download = `converted-${Date.now()}.svg`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
 
-    copySVG() {
-        if (!this.svgOutput) return;
-
-        navigator.clipboard.writeText(this.svgOutput).then(() => {
-            const copyBtn = document.getElementById('copyBtn');
-            if (copyBtn) {
-                const original = copyBtn.textContent;
-                copyBtn.textContent = '✅ Copied!';
-                setTimeout(() => copyBtn.textContent = original, 2000);
-            }
+    function copySvgCode() {
+        navigator.clipboard.writeText(currentSvg).then(() => {
+            copyBtn.textContent = '✅ Copied!';
+            setTimeout(() => copyBtn.textContent = '📋 Copy SVG Code', 2000);
         });
     }
-
-    updateUI() {
-        const hasImage = !!this.currentImage;
-        const hasSVG = !!this.svgOutput;
-        const isProcessing = this.isProcessing;
-
-        const convertBtn = document.getElementById('convertBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const copyBtn = document.getElementById('copyBtn');
-
-        if (convertBtn) convertBtn.disabled = !hasImage || isProcessing;
-        if (downloadBtn) downloadBtn.style.display = hasSVG ? 'inline-block' : 'none';
-        if (copyBtn) copyBtn.style.display = hasSVG ? 'inline-block' : 'none';
-    }
-}
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        new ImageToSVGConverter();
-    });
-} else {
-    new ImageToSVGConverter();
-}
+});
