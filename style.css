@@ -1,19 +1,254 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Roboto', sans-serif; background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-.container { max-width: 900px; width: 100%; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); padding: 40px; text-align: center; }
-header h1 { font-size: 2.5em; background: linear-gradient(135deg, #6366F1, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
-header p { color: #64748B; font-size: 1.1em; }
-.upload-zone { border: 3px dashed #CBD5E1; border-radius: 16px; padding: 60px 20px; margin: 40px 0; cursor: pointer; transition: all 0.3s; }
-.upload-zone:hover { border-color: #6366F1; background: #F1F5F9; }
-.upload-icon { font-size: 4em; margin-bottom: 20px; }
-.controls { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin: 30px 0; }
-.slider-group { display: flex; align-items: center; gap: 10px; background: #F8FAFC; padding: 12px 20px; border-radius: 12px; }
-.slider-group label { font-weight: 500; min-width: 80px; }
-input[type=range] { flex: 1; height: 6px; border-radius: 3px; background: #E2E8F1; outline: none; }
-button { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; border: none; padding: 14px 32px; border-radius: 12px; font-size: 1.1em; font-weight: 500; cursor: pointer; transition: transform 0.2s; }
-button:hover { transform: translateY(-2px); }
-.previews { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 40px 0; }
-.preview-panel h3 { margin-bottom: 15px; color: #334155; }
-canvas, #svgPreview { max-width: 100%; height: 300px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-.actions { margin-top: 30px; }
-@media (max-width: 768px) { .previews { grid-template-columns: 1fr; } .controls { flex-direction: column; align-items: stretch; } }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+header p {
+    opacity: 0.9;
+    font-size: 1.2em;
+}
+
+.upload-zone {
+    padding: 60px 40px;
+    text-align: center;
+    border: 3px dashed #ddd;
+    border-radius: 20px;
+    margin: 40px;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.upload-zone:hover, .upload-zone.dragover {
+    border-color: #4facfe;
+    background: #f0f8ff;
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+}
+
+.upload-zone h2 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+}
+
+.upload-zone p {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.preview-area, .download-area {
+    padding: 40px;
+}
+
+.image-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.image-box {
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 15px;
+}
+
+.image-box h3 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.image-box img, #svgPreview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    background: white;
+    padding: 10px;
+}
+
+#svgPreview {
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.controls {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.slider-control {
+    display: block;
+    margin: 20px 0;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.slider-control input[type="range"] {
+    width: 200px;
+    margin: 10px;
+    height: 8px;
+    border-radius: 5px;
+    background: #ddd;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.slider-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #4facfe;
+    cursor: pointer;
+}
+
+.download-area {
+    text-align: center;
+}
+
+.success-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+}
+
+.download-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 30px 0;
+}
+
+.preview-download {
+    margin-top: 30px;
+}
+
+.preview-download h4 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+#finalSvg {
+    width: 300px;
+    height: 300px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    background: white;
+}
+
+.btn {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    color: white;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(86, 171, 47, 0.4);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.hidden {
+    display: none !important;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    color: #666;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .container {
+        margin: 10px;
+        border-radius: 15px;
+    }
+    
+    header h1 {
+        font-size: 2em;
+    }
+    
+    .image-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .download-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .upload-zone {
+        margin: 20px;
+        padding: 40px 20px;
+    }
+}
