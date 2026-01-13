@@ -3,49 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image to SVG Converter - Free Online Tool</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.skypack.dev/imagetracerjs"></script>
+    <title>Image to SVG Converter</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🖼️ Image to SVG Converter</h1>
-            <p>Transform raster images to editable, scalable vectors instantly</p>
+            <p>Convert your images to scalable SVG format with one click</p>
         </header>
-        <div class="upload-zone" id="uploadZone">
-            <div class="upload-icon">📁</div>
-            <p>Drag & drop image or <label for="fileInput">click to browse</label></p>
-            <input type="file" id="fileInput" accept="image/*" hidden>
-        </div>
-        <div class="controls" id="controls" style="display:none;">
-            <div class="slider-group">
-                <label>Colors: <span id="colorVal">16</span></label>
-                <input type="range" id="colors" min="2" max="32" value="16">
+
+        <main>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <p>Drag & drop your image here or click to browse</p>
+                <input type="file" id="imageInput" accept="image/*" hidden>
+                <button id="browseBtn" class="btn">Browse Files</button>
             </div>
-            <div class="slider-group">
-                <label>Blur: <span id="blurVal">0</span></label>
-                <input type="range" id="blur" min="0" max="10" value="0">
+
+            <div class="preview-container" id="previewContainer" style="display: none;">
+                <div class="image-preview">
+                    <img id="originalImage" alt="Original image">
+                </div>
+                
+                <div class="controls">
+                    <label>
+                        <input type="range" id="qualitySlider" min="0.1" max="1" step="0.1" value="0.5">
+                        <span>SVG Quality: <span id="qualityValue">50</span>%</span>
+                    </label>
+                    <button id="convertBtn" class="btn primary">Convert to SVG</button>
+                </div>
+
+                <div class="svg-preview">
+                    <div id="svgCanvas"></div>
+                </div>
             </div>
-            <button id="convertBtn">Convert to SVG</button>
-        </div>
-        <div class="previews" id="previews" style="display:none;">
-            <div class="preview-panel">
-                <h3>Original</h3>
-                <canvas id="originalCanvas"></canvas>
+
+            <div class="download-section" id="downloadSection" style="display: none;">
+                <h3>✅ SVG Ready!</h3>
+                <button id="downloadBtn" class="btn primary large">Download SVG</button>
+                <button id="copyBtn" class="btn secondary">Copy SVG Code</button>
             </div>
-            <div class="preview-panel">
-                <h3>Traced SVG</h3>
-                <div id="svgPreview"></div>
-            </div>
-        </div>
-        <div class="actions" id="actions" style="display:none;">
-            <button id="downloadBtn">⬇️ Download SVG</button>
-            <a id="svgLink" download="converted.svg" style="display:none;">Download</a>
-        </div>
+        </main>
+
+        <footer>
+            <p>Powered by HTML5 Canvas Tracing Algorithm</p>
+        </footer>
     </div>
+
     <script src="script.js"></script>
-    <script src="converter.js"></script>
 </body>
 </html>
